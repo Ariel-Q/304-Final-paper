@@ -1,5 +1,6 @@
-The decline of Birth rate marks the existance of a species, thus it have come to our attentition to reveal the puzzle behind the fallin of birth rate. We have suspected that Economic Recession will affect more than the economic aspect, it could potentially affects the birth rate. In this research paper, we will be replicating the paper,"The Puzzle of Falling US Birth rate" and explore more addition to the sudden decline and relationship bettween recession and birth rate.
+Motor vehicle accidents caused by teen driving are one of the leading causes of death among teenagers in the United States. However, the risk factors behind teen driving accidents have not been further discussed. Some studies have shown that dangerous driving among teenagers is associated with drug and alcohol abuse.
+This paper replicates the "Teenage Driving, Mortality, and Risky Behaviors”, focusing on the impact of various factors on teen driving accidents and death rates,
 
-inputs contain all data expect for the dta file which can be obtained from https://pubs.aeaweb.org/doi/pdfplus/10.1257/jep.36.1.151
-
+inputs contain all data expect for the dta file which can be obtained from https://www.openicpsr.org/openicpsr/project/133501/version/V1/view?path=/openicpsr/133501/fcr:versions/V1&type=project
+Cancel changes
 outputs contains the rmd and pdf output of the research paper
