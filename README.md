@@ -1,6 +1,26 @@
-Motor vehicle accidents caused by teen driving are one of the leading causes of death among teenagers in the United States. However, the risk factors behind teen driving accidents have not been further discussed. Some studies have shown that dangerous driving among teenagers is associated with drug and alcohol abuse.
-This paper replicates the "Teenage Driving, Mortality, and Risky Behaviors”, focusing on the impact of various factors on teen driving accidents and death rates,
+Depression and Suicide in California
+Author: Ariel Xu
+Date: April 27, 2022
+E-mail: ariel.xq@outlook.com
 
-inputs contain all data expect for the dta file which can be obtained from https://www.openicpsr.org/openicpsr/project/133501/version/V1/view?path=/openicpsr/133501/fcr:versions/V1&type=project
+Obtaining data
+The data is available on https://letsgethealthy.ca.gov/progress/
 
-outputs contains the rmd and pdf output of the research paper
+
+Preprocess data and Reproducing Graphs
+In the script "data.R", located in "scripts/data.R", contains all the code that is necessary to clean the data and reproduce the graphs as shown in the paper.
+
+This script uses the file that is located in the "input" file
+
+Building the Report
+There is a RMarkDown document located in "outputs/paper/paper.Rmd". This file is used to produce the report "Depression and Suicide in California". It contains the R code to produce the graphs and the report format code. The reference used are also located in "outputs/paper/references.bib".
+
+File Structure
+Inputs
+In this folder, you will find raw data for all the indicators.
+Outputs
+In this folder you will find a reference file, RMarkdown file, and a pdf document of the paper.
+Scripts
+This folder contains R-Scripts to retrieve, clean, and do analysis (visulization) with the dataset.
+Licence
+Typical MIT licence for re usability
