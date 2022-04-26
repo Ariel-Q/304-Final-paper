@@ -1,0 +1,327 @@
+---
+title: "Depression and Suicide in California"
+subtitle: "the affect of adverse childhood experience"
+author: 
+  - Ariel Xu
+thanks: "Code and data are available at: https://github.com/Ariel-Q/304-Final-paper.git"
+date: "27 April 2022"
+abstract: "In this paper, the data from Let's Get Healthy California was analyzed to examine how the percentage of people with depression, the rate of suicide, and the percentage of people with adverse childhood experiences are affecting each other. The analysis was able to determine the relationship between depression and suicide in different population groups and whether adverse childhood experiences increase the chance of depression. This is an important result as it can help people raise awareness of the dangers of depression, understand potential biases in diagnosis, and improve the prevention and screening of people at high risk of depression and suicide. "
+output: pdf_document
+toc: True
+bibliography: references.bib
+---
+
+```{r setup, include=FALSE}
+library(haven)
+library(tidyverse)
+library(ggplot2)
+library(gridExtra)
+library(here)
+library(readr)
+library(knitr)
+```
+
+```{r include=FALSE}
+knitr::opts_chunk$set(warning=FALSE, message=FALSE, echo = FALSE)
+```
+
+\newpage
+# Introduction
+Depression is a common mental illness worldwide, affecting an estimated 3.8% of the population, including 5.0% of adults and 5.7% of adults over 60 years of age [@WHO2021Depression]. Based on this ratio, approximately 280 million people in the world suffer from depression. Unlike the mood swings and temporary emotional responses to challenges that are common in everyday life, depression has a lasting negative impact on patients. This can be a serious health condition, especially if moderate or major depression occurs repeatedly. It can cause those affected to under perform at work, school, and home. In the worst cases, depression can lead to suicide. More than 700,000 people die by suicide each year. Suicide is the fourth leading cause of death among 15- to 29-year-old.
+In this report, we focused on depression and suicide among people in California, USA, and examined their negative childhood experiences. The data were compared and analyzed according to age, race, and other conditions. This report provides an understanding of the prevalence of depression and suicide in different populations, it also discussed the influence of adverse childhood experiences on depression and suicide. 
+
+In section 2, we discuss the trend of depression and suicide in 2012-2018 by sex, age, income, education level, and race. Besides, we explained the strength and the limitation of the data set and how the data collection method will affect the ability to the generation of our results.
+aIn section 3, the data of three aspects are put together to reveal the possible connection between each other and what these results mean in our daily life.
+
+# Data
+
+## Key features
+The National Health Assessment (SHA) collects data from telephone surveys to provide an overview of the health of the entire California population across a range of conditions and factors. SHA identifies key health issues and contributing factors and provides a basis for the planning and development of programs and policies. The survey included questions on 6 different aspects of life, including Healthy Beginnings, Living Well, End of Life, Redesigning the Health System, Creating Healthy Communities, and Lowering the Cost of Care. The telephone survey included measurement questions for 59 different indicators, ranging from 40,000 to 45,000 people per year, depending on the year. In this report, we have mainly focused on the Healthy Beginnings and Living Well section of the survey with indicators including Adverse Childhood Experiences, Adult Depression, and Suicide. 
+The research uses `R` language[@citeR] as its foundation, where we have used packages such as `tidyverse`[@tidyverse], `haven`[@haven], `here`[@here], `readr`[@readr] to prepare data for this project. Where we then used `Kable`[@kableExtra] to generate table and `ggplot`[@ggplot2] to generate plots.
+
+## Source and Methodology
+All the data used in the analysis comes from the California Health and Human Services Open Data Portal. The survey was initialized by the Centers for Disease Control and Prevention (CDC) and was conducted on a sample of the population aged 18 and over. Depending on the indicator, some data were released annually and others were released in a 2–3-year cycle. For indicators of Adverse Childhood Experiences and Adult Depression, the data is collected by a phone call with a standardized questionnaire and technical and methodological assistance from CDC. The suicide data is collected from Vital Records of The Centers for Disease Control and Prevention Wide-ranging Online Data for Epidemiological Research (CDC WONDER), which is a web-based resource that provides state and county-level vital statistic data for births, deaths, and infant mortality.
+The samples of all the indicator’s data were randomly selected from the population. As the data collected from the phone-call questionnaire, the sample is selected from both land-line and cellular telephones to improve the validity, data quality, and representative of BRFSS data. The number of samples was weighted according to the market share of different communication servers. 
+
+## Limitation
+All the indicators that collected data from the telephone-call survey have similar limitations. First, the data is based on self-reported information which has limited reliability and the possibility of subjective biases. Second, the data only provides prevalence, not incidence data. Third, the existence of bias or measurement error associated with a telephone-administered survey of a sample of the population, such as response bias and sampling variation, can not be avoided. Other limitations that are specific to each indicator are demonstrated below. 
+
+### Adult Depression
+The result for this indicator is based on self-reported information on the question “Has a doctor, nurse, or other health professionals EVER told you that you have a depressive disorder (including depression, major depression, dysthymia, or minor depression)?” The use of "health professionals" in the question limits the estimated prevalence to those diagnosed by physical health practitioners and does not explicitly include mental health professionals. Thus, an unknown percentage of respondents diagnosed by a mental health professional may have answered "no" when the answer should have been "yes."
+
+Because only those respondents who had been professionally diagnosed with depression were counted, the new indicators could not account for those who had any depression spectrum disorder but might not have reported it or sought help from a health professional. This may significantly underestimate lifetime prevalence. This underestimation is relatively high among sub-populations with less access to health care.
+
+### Adverse Childhood Experiences
+
+The ACEs module of the Behavioral Risk Factors Surveillance System (BRFSS) asks respondents questions about eight different traumatic childhood experiences that occurred before the age of 18. These include verbal/emotional abuse, physical abuse, sexual abuse, and negative household situations including the incarceration of an adult, alcohol or drug abuse by an adult, violence between adults, mental illness of a household member, and parental divorce or separation. Due to the limited and incomplete definition of the examples of adverse childhood experiences given in the questionnaire, other situations not listed may not be screened out by the questionnaire. Thus, an unknown percentage of respondents diagnosed by a mental health professional may have answered "no" when the answer should have been "yes." Also, as the data doesn't specify the number of adverse experience that each participants experienced, this indicator does not capture the severity of these childhood experiences.
+
+### Suicide:
+Data does not include out-of-state deaths for California residents, nor in-state deaths for non-California residents. Physician-assisted suicides are not included.
+
+
+## Descriptive analysis
+```{r}
+raw <- read.csv(here("inputs/depression data.csv"))
+raw_child <- read.csv(here("inputs/childhood.csv")) %>% filter(Year != 2011) %>% filter(Strata != "Education", Strata != "Health Insurance") %>% arrange(Year)
+raw_suicide <- read.csv(here("inputs/suicide.csv")) %>% filter(Geography == "CALIFORNIA")
+year <- c("2012", "2013", "2014", "2015", "2016", "2017", "2018", "2012-2014", "2015-2017")
+raw_suicide <- raw_suicide %>% filter(Year %in% year)
+```
+
+
+
+```{r}
+sex <- raw %>% filter(Strata == "Sex")
+age <- raw %>% filter(Strata == "Age")
+race <- raw %>% filter(Strata == "Race-Ethnicity")
+education <- raw %>% filter(Strata == "Education")
+income <- raw %>% filter(Strata == "Income")
+total <- raw %>% filter(Strata == "Total")
+sex_s <- raw_suicide %>% filter(Strata == "Sex")
+race_s <- raw_suicide %>% filter(Strata == "Race/Ethnicity")
+total_s <- raw_suicide %>% filter(Strata.Name == "Total")
+```
+
+
+```{r}
+c1217 <- c("2012", "2013", "2014", "2015", "2016", "2017")
+suicide_1217 <- raw_suicide %>% filter(Year %in% c1217) %>% filter(Strata.Name != "Total")
+depression_1217 <- sex %>% filter(Year != 2018)
+```
+
+
+```{r figure-1, fig.height=4}
+total %>% ggplot(aes(x=Year, y=Percent)) +
+  geom_point() +
+  geom_smooth(method='lm' , color="purple", fill="#69b3a2", se=TRUE) +labs(
+    x = "Year",
+    y = "Percent of population",
+    title = "Total Percent of population that reported have depressive disorder",
+    caption = "data collected from Let's Get Healthy California indicator"
+  ) +scale_x_continuous(breaks = seq(2010, 2020, 1))+ scale_y_continuous(breaks = seq(0, 20, 2))+
+     theme_classic()
+```
+In Figure 1, we examine the trend of the total percent of the population that has been told by health professionals that they have a depressive disorder. From 2012 to 2018, the overall trend in this number is upward by, on average, one percent per year. 2017 was the high point for depression, but the reasons behind this are unknown.
+
+```{r figure-2, fig.height=4}
+ggplot(sex, aes(fill=Strata.Name, y=Percent, x=Year)) + 
+    geom_bar(position="dodge", stat="identity")+guides(fill=guide_legend(title="Gender"))+
+  labs(
+    x = "Year",
+    y = "Percent of population",
+    title = "Percent of population with depression by sex in California from 2012-2018",
+    caption = "data collected from Let's Get Healthy California indicator")
+```
+In Figure 2, we plot the percent of the population with depression by sex for each year from 2012 to 2018. In all the years shown, women are or have been significantly more depressed than men. This varies slightly from year to year, with a difference of between 5% and 8%. In the case of gender discussion, the rate of depression in the male population is relatively stable, around 12%, while the rate of depression in the female population is similar to that in the general population, and both reached the highest point in 2017, 19.4%
+```{r figure-3, fig.height=4}
+income %>%
+  ggplot(aes(
+    y = Percent,
+    x = Year,
+    group = Strata.Name,
+    color = Strata.Name,
+    
+  )) +
+  geom_line() + 
+  guides(color = guide_legend(title = "Income")) +
+  labs(
+    x = "Year",
+    y = "Percent of population",
+    title = "Percent of population with depression by income in California from 2012-2018",
+    caption = "data collected from Let's Get Healthy California indicator"
+  )
+```
+In Figure 3, we plot the percentage of the population with depression by different levels of income for each year from 2012 to 2018. The trend line for the population that has an income of fewer than 20,000 dollars per year shows a much higher rate of depression than any other income class. Although there was no significant difference in rates of depression among those earning between $20,000 and $99,999 per year, we did see the lowest rates of depression among those earning more than $100,000 per year. This result suggests, from a certain level, that economic stress in life is also an important potential factor for depression.
+
+```{r figure-4, fig.height=4}
+race %>%
+  ggplot( aes(y=Percent, x=Year, group=Strata.Name, color=Strata.Name, )) +
+    geom_line()+ guides(color = guide_legend(title = "Race"))+
+  labs(
+    x = "Year",
+    y = "Percent of population",
+    title = "Percent of population with depression by race in California from 2012-2018",
+    caption = "data collected from Let's Get Healthy California indicator")
+```
+In Figure 4, we plot the percentage of the population with depression by race. As there was no definition of Other in the original data set, we could not infer much from its highest rate of depression. In addition, white people had the highest rates of depression and Asian/Atlantic Islander people had the lowest rates of depression of any race. They differ by more than 10%. 
+
+
+```{r figure-5, fig.height=4}
+education %>%ggplot( aes(y=Percent, x=Year, group=Strata.Name, color=Strata.Name)) +
+    geom_line()+ guides(color = guide_legend(title = "Education level"))+
+  labs(
+    x = "Year",
+    y = "Percent of population",
+    title = "Percent of population with depression by education level in California from 2012-2018",
+    caption = "data collected from Let's Get Healthy California indicator")
+```
+In Figure 5, we plot the percentage of the population with depression by different education levels. Despite some of the cross-over, the trend lines demonstrated that as the education level increase, the percentage of the population that has been told that they have a depressive disorder decreases. 
+```{r}
+d_s <- total[c(1,6)] 
+d_s <- d_s %>% filter(Year != 2018)
+s_partial <- total_s[1:6,]
+d_s$Percent_s <- s_partial$Rate
+```
+
+```{r figure-6, fig.height=4}
+s_partial <- transform(s_partial, Year = as.numeric(Year))
+s_partial%>% ggplot(aes(x=Year, y=Rate)) +
+  geom_point() +
+  geom_smooth(method='lm' , color="purple", fill="#69b3a2", se=TRUE) +labs(
+    x = "Year",
+    y = "Percent of population",
+    title = "Total Percent of death that caused by suicide",
+    caption = "data collected from Let's Get Healthy California indicator"
+  ) + theme_classic()
+```
+
+In Figure 6, we examine the trend of the total percent of the population that died by suicide. From 2012 to 2017, the overall trend in this number is upward by, on average, 0.2% per year. 2014 was the high point for suicide. 
+
+```{r figure-7, fig.height=4}
+ggplot(suicide_1217, aes(fill=Strata.Name, y=Rate, x=Year)) + 
+    geom_bar(position="dodge", stat="identity")+guides(fill=guide_legend(title="Gender"))+
+  labs(
+    x = "Year",
+    y = "Percent of population",
+    title = "Percent of population that suicide in California from 2012-2017 by Sex",
+    caption = "data collected from Let's Get Healthy California indicator")
+```
+Figure 7 demonstrates the percentage of the population who died by suicide in males and females. Different from the depression rate, much more males conduct suicide than females, the percentage difference is around 10%. The rate remained roughly the same from 2012 to 2017, with the suicide death rate for males at around 16%, compared with just 5% for females. 
+
+```{r table-1,}
+RC <- c("Asian", "Black", "White", "Hispanic", "Other")
+RCS <- race_s %>% filter(Strata.Name == "Asian-NH"|Strata.Name == "Black-NH"|Strata.Name == "White-NH"|Strata.Name == "Hisp")
+RCS_1 <- race_s %>% filter(Strata.Name != "Asian-NH"&Strata.Name != "Black-NH"&Strata.Name != "White-NH"&Strata.Name != "Hisp")
+RCS_o <- data.frame(c("2012-2014", "2015-2017"), c("other", "other"), c(8.741, 9.009))
+RCS <- RCS %>% select(Year, Strata.Name, Rate)
+names(RCS_o) <- c("Year", "Strata.Name", "Rate")
+RCS <- rbind(RCS, RCS_o) %>% arrange(Year, desc(Rate))
+knitr::kable(RCS, col.names = c("Year", "Race", "Percent of Suicide"), caption = "Percent of Population that Suicide by Race in 2012-2017", digits = 2, align=c(rep('c',times=3)))
+```
+Table 1 lists the percent of suicide in the population for all the races. Such results may be affected by bias in the selection of the survey sample. Since the report focused on people in California, local deaths may be more comprehensive for whites than for other races. But even without that, the suicide rate for white, non-Hispanic people is still 10 percent or more higher than that of any other ethnic group.
+
+```{r}
+fig8 <- raw_child %>% filter(Strata == "Total population") %>% ggplot(aes(y=Rate, x=Year)) + 
+    geom_bar(position="dodge", stat="identity")+scale_x_continuous(breaks = seq(2013, 2025, 2))+
+  labs(
+    x = "Year",
+    y = "Percent of population",
+    title = "Total")
+
+
+```
+
+```{r}
+fig9 <- raw_child %>% filter(Strata == "Sex") %>% ggplot( aes(fill=Strata.Name, y=Rate, x=Year)) + 
+    geom_bar(position="dodge", stat="identity")+guides(fill=guide_legend(title="Gender"))+scale_x_continuous(breaks = seq(2013, 2025, 2))+
+  labs(
+    x = "Year",
+    y = "Percent of population",
+    title = "By sex")
+```
+
+
+```{r}
+fig10 <- raw_child %>% filter(Strata == "Age") %>% ggplot( aes(fill=Strata.Name, y=Rate, x=Year)) + 
+    geom_bar(position="dodge", stat="identity")+guides(fill=guide_legend(title="Gender"))+scale_x_continuous(breaks = seq(2013, 2025, 2))+
+  labs(
+    x = "Year",
+    y = "Percent of population",
+    title = "By Age")
+```
+
+```{r, figure-8,}
+grid.arrange(fig8,fig9,fig10, ncol=2, top="Percent of population that has adverse childhood experience",layout_matrix = cbind(c(1,3), c(2,3)))
+```
+Figure 8 shows the percentage of the population that has adverse childhood experiences. The upper left panel of the figure shows that in both of the survey, the total percentage of the population with childhood experiences were very high, more than 60%, and the result has not changed significantly as time passed. The percentage separated by sex is shown on the upper right panel of the figure. Similar to the total result, there was little difference between males and females on this indicator. The lower panel shows the percentage separated by age. While the other group’s situation is similar to the total percentage, the population that is over 65 years old has a lower rate about having adverse childhood experiences. 
+
+\newpage
+
+# Results
+Using several responses through the survey, we are able to observe the results visually using ggplot, aiding in the understanding of the results.
+
+```{r figure-10,}
+ggplot(d_s, aes(Year)) + 
+  geom_line(aes(y = Percent), color = "darkviolet", size = 0.8,) +
+  geom_line(aes(y = Percent_s), color = "deepskyblue2", size = 0.8) +
+  geom_text(
+    mapping = aes(x = 2014, y = 14, label = "Depression"),
+    size = 3,
+    color = "darkviolet"
+  ) +
+  geom_text(
+    mapping = aes(x = 2014, y = 11, label = "Suicide"),
+    size = 3,
+    color = "deepskyblue2"
+  )  +
+  labs(
+    x = "Year",
+    y = "Percent in Population",
+    title = "trend of depression and suicide in California",
+  )+scale_x_continuous(breaks = seq(2012, 2020, 1))+scale_y_continuous(breaks = seq(10, 18, 1))+
+  theme(
+    panel.background = element_rect(fill = "gray98"),
+    panel.grid.major.y = element_line(
+      color = "darkgray",
+      size = 0.5,
+      linetype = 1
+    ), panel.grid.major.x = element_line(
+      color = "darkgray",
+      size = 0.5,
+      linetype = 1
+    ),
+    axis.line =  element_line(
+      color = "black",
+      size = 0.5,
+      linetype = 1
+    ) 
+  )
+```
+
+```{r}
+data_1315 <- sex %>% filter(Year == 2013|Year == 2015)
+child_s <- raw_child %>% filter(Strata == "Sex") 
+data_1315$Percent_childhood <- child_s$Rate
+suicide_s <- sex_s %>% filter((Year == 2013|Year == 2015) & Strata.Name != "Total")
+suicide_s <- c(15.720, 4.749, 16.070, 5.765)
+data_1315$Percent_suicide <- suicide_s
+data_1315 <- data_1315 %>% select(Year, Strata.Name, Percent, Percent_childhood, Percent_suicide)
+names(data_1315)[names(data_1315) == "Percent"] <- "Percent_depression"
+```
+
+
+```{r table-2,}
+knitr::kable(data_1315, col.names = c("Year", "Sex", "Percent of Depression", "Percent of Adverse Childhood Experience", "Percent of Suicide"), caption = "Percent of population with Depression, Adverse Childhood Experience and Suicide in 2013 and 2015", digits = 2, align=c(rep('c',times=5)))
+
+```
+## Depression and suicide
+As shown in figure 10 \@ref(fig:figure-10), we can see that the percentage of the population with depression and that suicide demonstrated a similar trend from 2012 to 2017. Although the percentage of the population that suicide rose and fell more gently than those with depression, the trend of change remained the same over time. Since the rise and fall of the number of depressed people can affect the situation of suicide to some extent, depression is one of the important factors leading to suicide. However, data on suicide and depression show different trends when broken down by gender.
+
+When we analyzed the data on depression and suicide by gender, we were surprised to find that although women have higher rates of depression than men, men have much higher rates of suicide than women. And when we break it down by race we get uniform results, with white people having higher rates of suicide and depression than any other race. The reasons and possible theories behind this result will be stated in the discussion section
+
+## Depression and adverse childhood exprience
+If we compare all the percentages that are separated by sex, we can see that as females have a higher percentage of people who has adverse childhood experience, they also have a higher percentage for depression. Although all the numbers for adverse childhood experiences are high, 62.8% and 64,6% for males and females in 2013 and 65.1% and 62.0% in 2015, we cannot deny that negative childhood experiences may be a potential contributor to depression. 
+
+However, due to the limitation of information that we have about the adverse childhood experience, it’s hard to predict its actual impact on people’s depression and suicide action. As s can see from figure 8, the percentage of people that has adverse childhood experience has only a bit different for all age group, and sex group, which is quite inconsistent with the distribution of depression and suicide (see figure 1\@ref(fig:figure-1), figure 3\@ref(fig:figure-3), figure 7\@ref(fig:figure-7) and table 1\@ref(tab:table-1)). Even if it does affect the chance people have depression or lead to suicide action, it will be hard to identify according to the data as it will impact most people in a similar way. 
+
+# Discussion
+## Sex, depression and suicide
+Previous research has shown that women are twice as likely as men to experience chronic sadness, apathy, low self-esteem and other symptoms of depression.[@Nolen1990Sex] The results are consistent with the conclusions of the institute, and the reasons behind them are varied. It is concluded that women's depression is either considered to be the inevitable result of anatomical structures such as women, or they are thought to be the result of their avoidance of the "natural" female role. The differences in the gender of depression in this study were thought to be caused by differences in the way men and women handle stress. Men often choose to confront the events that lead to depression in order to cut off the source of the depression, while women tend to prolong the duration and amplify the effects of their depression by staying aware of it. [@Tramer2020Association] Such depression is different from suicide, which shows that male suicide rates are much higher than that of women. This is not limited to California. In 2014, in the 15 to 24-year-old Irish, the death of a man killed was 4.1 times the death of a woman.[@World] A study of men's depression and suicidal tendencies suggests that depression marks a link between male sexuality in gender conflict and suicidal idealization, leading to a more suicidal effort in the face of gender conflict, rather than depression. [@OBeaglaoich2020Adolescent] from the perspective of gender conflict, the study supported the proportion of men's low depression and high suicide rates. Meanwhile, another study has pointed to whether women with depression are more likely to be correctly identified than men, and among patients with major depression, men and hospitalized patients are at a much greater risk of suicide.[@Blair2001Major] Therefore, according to this result, the treatment of depression and suicide prevention should be properly reduced, and the threshold of treatment for men should be properly reduced to better prevent the loss of male depression patients and the tendency of men to commit suicide
+
+## Adverse childhood experience and suicide
+
+Although our findings show that adverse childhood experiences are similar for both sexes, the data used in this study do not specify the severity of adverse childhood experiences. And studies have shown that those who without or without a history of child abuse and neglect, compared to those with a moderate to the severe history of child abuse are more likely to be female, but the females with adverse childhood experience will have depression symptoms that are more likely to the depression symptoms of males, and "male depression is associated with a higher risk of suicide.[@Pompili2014associations] Meanwhile, other studies have shown that physical, sexual, and emotional abuse, parental imprisonment, and a family history of suicide all increase the risk of suicidal ideation and suicide attempts in adulthood by 1.4 to 2.7 times.[@Thompson2018Associations] (6) People who had three or more adverse experiences were more than three times more likely to seriously consider or attempt suicide as adults than those who had none. Adverse experiences in childhood increase the risk of depression and suicide in later life. Although this study was not able to conduct further analysis on this issue due to data limitations, this risk factor still needs to be paid attention to. Corresponding intervention strategies need to be adopted to prevent adverse experiences and, if they do occur, to take into account the effect of accumulated adverse experiences on the risk of suicide and depression.
+
+## Race and depression 
+
+The report points out that whites rank among the highest in both depression and suicide rates, a finding that is corroborated by other statistical surveys. Other studies have shown that white individuals have a significantly earlier onset of major depressive disorder than African Americans.[@Riolo2005Prevalence] Since depression in the study was assessed based on whether participants had previously been diagnosed with depression, earlier onset and diagnosis could have led to higher rates of depression among whites. Although some earlier studies have shown that African-Americans suffer from depression at lower rates than whites. But studies have shown that depression and financial distress are related, and the association varies across demographic groups, particularly based on race. There was a stronger link between depression and financial distress among African Americans, with whites still having higher rates of depression even in the same financial situation.[@Assari2019Race] The economic needs of African Americans suffering from depression should be addressed to improve the situation. African Americans with financial difficulties also need to be screened for depression.
+
+
+
+
+\newpage
+
+# References
+
+
+
