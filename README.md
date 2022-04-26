@@ -1,6 +1,9 @@
 Depression and Suicide in California
+
 Author: Ariel Xu
+
 Date: April 27, 2022
+
 E-mail: ariel.xq@outlook.com
 
 Obtaining data
